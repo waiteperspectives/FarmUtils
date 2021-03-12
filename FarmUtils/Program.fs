@@ -101,15 +101,15 @@ let makeBornCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
 // switch functions to extract a subcommand and either:
 // 1) stop parsing and handle the subcommand
 // 2) continue parsing
-// TODO: This can be generalized
-let stopMaker k f parsed =
-  let wrapped (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
-    let rs = parsed.Item k
-    match rs with
-    | Flag _ -> Stop (f parsed)
-    | None -> Continue parsed
-    | _ -> failwith "????"
-  wrapped parsed
+// TODO: This can be generalized - maybe like this?
+//let stopMaker k f parsed =
+//  let wrapped (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
+//    let rs = parsed.Item k
+//    match rs with
+//    | Flag _ -> Stop (f parsed)
+//    | None -> Continue parsed
+//    | _ -> failwith "????"
+//  wrapped parsed
 
 let helpStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
   let maybeHelp = parsed.Item "-h"
