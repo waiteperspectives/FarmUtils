@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DocOpt.Core", "DocOpt.Core\DocOpt.Core.fsproj", "{AD6D7EC1-143E-413F-97BA-9B25E5B250F5}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FarmUtils", "FarmUtils\FarmUtils.fsproj", "{B3654F71-D8D2-4760-B531-BEAE9236F62A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD6D7EC1-143E-413F-97BA-9B25E5B250F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD6D7EC1-143E-413F-97BA-9B25E5B250F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD6D7EC1-143E-413F-97BA-9B25E5B250F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD6D7EC1-143E-413F-97BA-9B25E5B250F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3654F71-D8D2-4760-B531-BEAE9236F62A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3654F71-D8D2-4760-B531-BEAE9236F62A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3654F71-D8D2-4760-B531-BEAE9236F62A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3654F71-D8D2-4760-B531-BEAE9236F62A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
