@@ -29,6 +29,9 @@ Herd Inventory
 
 Usage:
   cow born <name> --dam=<dam> [--asof=<date>] [--force]...
+  cow died <name> [--asof=<date>] [--force]...
+  cow bought <name> [--asof=<date>] [--force]...
+  cow sold <name> [--asof=<date>] [--force]...
   cow (-h | --help)
   cow --version
 
@@ -47,13 +50,29 @@ type BornCommand = {
   Dam: string
 }
 
+type DiedCommand = {
+  Name: string
+}
+
+type BoughtCommand = {
+  Name: string
+}
+
+type SoldCommand = {
+  Name: string
+}
+
 // "Help" and "Version" are not domain objects, so should not be sent deeper
-// hence calling this CliCommand. There should probably be another thing DomainCommand
+// hence calling this CliCommand.
+// Maybe there should probably be another thing DomainCommand
 type CliCommand =
   | Help of string
   | Version of string
   | Invalid of string
   | Born of BornCommand
+  | Died of DiedCommand
+  | Bought of BoughtCommand
+  | Sold of SoldCommand
 
 type CliResponse = CliResponse of string
 
@@ -68,20 +87,20 @@ let handleCliCommand (request:CliCommand): CliResponse =
   match request with
   | Help s -> CliResponse s
   | Version s -> CliResponse s
-  | Born r -> CliResponse (sprintf "Saved! {name=%s; dam=%s}" r.Name r.Dam)
   | Invalid x -> CliResponse x
-
+  | Born r -> CliResponse (sprintf "Born Saved! {name=%s; dam=%s}" r.Name r.Dam)
+  | Died r -> CliResponse (sprintf "Died Saved! {name=%s}" r.Name)
+  | Bought r -> CliResponse (sprintf "Bought Saved! {name=%s}" r.Name)
+  | Sold r -> CliResponse (sprintf "Sold Saved! {name=%s}" r.Name)
 
 type StopOrContinue =
   | Stop of CliCommand
   | Continue of Docopt.Arguments.Dictionary
 
-
 let bind continueHandler stopOrContinue =
   match stopOrContinue with
   | Continue parsed -> continueHandler parsed
   | Stop value -> Stop value
-
 
 let makeBornCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
   let herName = 
@@ -93,11 +112,29 @@ let makeBornCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
     match parsed.Item "--dam" with
     | Argument s -> s
     | _ -> "who cares"
-  
   Born {Name=herName; Dam=herDam}
   
+let makeDiedCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
+  let herName = 
+    match parsed.Item "<name>" with
+    | Argument s -> s
+    | _ -> "who cares"
+  Died {Name=herName}
+  
+let makeBoughtCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
+  let herName = 
+    match parsed.Item "<name>" with
+    | Argument s -> s
+    | _ -> "who cares"
+  Bought {Name=herName}
 
-
+let makeSoldCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
+  let herName = 
+    match parsed.Item "<name>" with
+    | Argument s -> s
+    | _ -> "who cares"
+  Sold {Name=herName}
+  
 // switch functions to extract a subcommand and either:
 // 1) stop parsing and handle the subcommand
 // 2) continue parsing
@@ -118,7 +155,6 @@ let helpStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
   | None -> Continue parsed
   | _ -> failwith "????"
 
-
 let versionStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
   let maybeVersion = parsed.Item "--version"
   match maybeVersion with
@@ -126,28 +162,49 @@ let versionStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
   | None -> Continue parsed
   | _ -> failwith "????"
 
-
 let bornStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
   let maybeBorn = parsed.Item "born"
   match maybeBorn with
   | Flag _ -> Stop (makeBornCommand parsed)
   | None -> Continue parsed
-  | _ -> failwith "????"
-
-
+  | _ -> failwith "????" // look for a way to avoid matching _
+  
+let diedStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
+  let maybeDied = parsed.Item "died"
+  match maybeDied with
+  | Flag _ -> Stop (makeDiedCommand parsed)
+  | None -> Continue parsed
+  | _ -> failwith "????" // look for a way to avoid matching _
+  
+let boughtStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
+  let maybeBought = parsed.Item "bought"
+  match maybeBought with
+  | Flag _ -> Stop (makeBoughtCommand parsed)
+  | None -> Continue parsed
+  | _ -> failwith "????" // look for a way to avoid matching _
+  
+let soldStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
+  let maybeSold = parsed.Item "sold"
+  match maybeSold with
+  | Flag _ -> Stop (makeSoldCommand parsed)
+  | None -> Continue parsed
+  | _ -> failwith "????" // look for a way to avoid matching _
 
 // wire-up: (help | version | born | died | bought | sold ...)
 // uses Railway oriented programing style of handling subcommands -
 // if one is matched, parsing stops and executes the subcommand
 let versionStop' = bind versionStop
 let bornStop' = bind bornStop
+let diedStop' = bind diedStop
+let boughtStop' = bind boughtStop
+let soldStop' = bind soldStop
+
 let convertToCliCommand (input:Docopt.Arguments.Dictionary): CliCommand =
-  let railroad = helpStop >> versionStop' >> bornStop'
+  let railroad = helpStop >> versionStop' >> bornStop' >> diedStop' >> boughtStop' >> soldStop'
   input |> railroad |> (fun stopOrContinue ->
     match stopOrContinue with
     | Stop cliCmd -> cliCmd
     | Continue _ -> Invalid INVALID_COMMAND)
-
 
 [<EntryPoint>]
 let main argv =
