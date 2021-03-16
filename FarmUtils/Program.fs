@@ -30,8 +30,6 @@ Herd Inventory
 Usage:
   cow born <name> --dam=<dam> [--asof=<date>] [--force]...
   cow died <name> [--asof=<date>] [--force]...
-  cow bought <name> [--asof=<date>] [--force]...
-  cow sold <name> [--asof=<date>] [--force]...
   cow (-h | --help)
   cow --version
 
@@ -44,6 +42,17 @@ Options:
 let VERSION = "\nHerd Inventory - Version 1.0.0\n\n"
 let NOTIMPLEMENTED = "This command has not yet been implemented"
 let INVALID_COMMAND = sprintf "Invalid Command!\n%s" DOC
+let COMMAND_KEYS = ["born"; "died"]
+let QUERY_KEYS = ["show"]
+
+type BornArgs = {
+  Name: string
+  Dam: string
+}
+
+type DiedArgs = {
+  Name: string
+}
 
 type BornCommand = {
   Name: string
@@ -54,166 +63,169 @@ type DiedCommand = {
   Name: string
 }
 
-type BoughtCommand = {
+type DomainCommand =
+  | BornCommand of BornCommand
+  | DiedCommand of DiedCommand
+  
+type BornEvent = {
+  Name: string
+  Dam: string
+}
+
+type DiedEvent = {
   Name: string
 }
 
-type SoldCommand = {
-  Name: string
-}
+type DomainEvent =
+  | BornEvent of BornEvent
+  | DiedEvent of DiedEvent
 
+// TODO: these functions feel repetitive, how to improve
+let makeBornCommand(args:BornArgs): DomainCommand =
+  BornCommand {Name=args.Name; Dam=args.Dam}
+  
+let makeDiedCommand(args:DiedArgs): DomainCommand =
+  DiedCommand {Name=args.Name}
+
+let makeBornEvent(cmd:BornCommand): DomainEvent =
+  BornEvent {Name=cmd.Name; Dam=cmd.Dam;}
+  
+let makeDiedEvent(cmd:DiedCommand): DomainEvent =
+  DiedEvent {Name=cmd.Name}
+  
+type ShowArgs = ShowArgs of string
+
+type QueryArgs =
+  | ShowArgs
+
+type CommandArgs =
+  | BornArgs of BornArgs
+  | DiedArgs of DiedArgs
+ 
+type CliArgs =
+  | HelpArgs of string
+  | VersionArgs of string
+  | InvalidArgs of string
+  | CommandArgs of CommandArgs
+  | QueryArgs of QueryArgs
+ 
+let makeBornArgs (parsed:Dictionary): CommandArgs =
+      let herName =
+        match parsed.Item "<name>" with
+        | Argument s -> s
+        | _ -> "???"
+    
+      let herDam=
+        match parsed.Item "--dam" with
+        | Argument s -> s
+        | _ -> "???"
+      
+      BornArgs { Name=herName; Dam=herDam }
+      
+let makeDiedArgs (parsed:Dictionary): CommandArgs =
+      let herName =
+        match parsed.Item "<name>" with
+        | Argument s -> s
+        | _ -> "???"
+    
+      DiedArgs { Name=herName }
+ 
+ // TODO: leverage complete pattern matching rather than using _
+let makeCommandArgs (parsed:Dictionary): CliArgs =
+   let subcommandType =
+     parsed
+     |> Seq.find((fun (KeyValue(k, _)) -> List.contains k COMMAND_KEYS))
+   match subcommandType.Key with
+   | "born" -> CommandArgs(makeBornArgs parsed)
+   | "died" -> CommandArgs(makeDiedArgs parsed)
+   | _ -> failwith "missing subcommand match"
+  
 // "Help" and "Version" are not domain objects, so should not be sent deeper
-// hence calling this CliCommand.
-// Maybe there should probably be another thing DomainCommand
-type CliCommand =
-  | Help of string
-  | Version of string
-  | Invalid of string
-  | Born of BornCommand
-  | Died of DiedCommand
-  | Bought of BoughtCommand
-  | Sold of SoldCommand
-
 type CliResponse = CliResponse of string
 
-let printCliResponse (response:CliResponse): unit =
-  match response with
-  | CliResponse s -> printfn "%s" s
-
-// This is the interface with the domain.
-// For "help" and "version" cases, just repackage the input
-// But for born, process the domain command, then wrap the result in CliResponse
-let handleCliCommand (request:CliCommand): CliResponse =
-  match request with
-  | Help s -> CliResponse s
-  | Version s -> CliResponse s
-  | Invalid x -> CliResponse x
-  | Born r -> CliResponse (sprintf "Born Saved! {name=%s; dam=%s}" r.Name r.Dam)
-  | Died r -> CliResponse (sprintf "Died Saved! {name=%s}" r.Name)
-  | Bought r -> CliResponse (sprintf "Bought Saved! {name=%s}" r.Name)
-  | Sold r -> CliResponse (sprintf "Sold Saved! {name=%s}" r.Name)
-
 type StopOrContinue =
-  | Stop of CliCommand
-  | Continue of Docopt.Arguments.Dictionary
+  | Stop of CliArgs
+  | Continue of Dictionary
 
 let bind continueHandler stopOrContinue =
   match stopOrContinue with
   | Continue parsed -> continueHandler parsed
   | Stop value -> Stop value
 
-let makeBornCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
-  let herName = 
-    match parsed.Item "<name>" with
-    | Argument s -> s
-    | _ -> "who cares"
-
-  let herDam = 
-    match parsed.Item "--dam" with
-    | Argument s -> s
-    | _ -> "who cares"
-  Born {Name=herName; Dam=herDam}
-  
-let makeDiedCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
-  let herName = 
-    match parsed.Item "<name>" with
-    | Argument s -> s
-    | _ -> "who cares"
-  Died {Name=herName}
-  
-let makeBoughtCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
-  let herName = 
-    match parsed.Item "<name>" with
-    | Argument s -> s
-    | _ -> "who cares"
-  Bought {Name=herName}
-
-let makeSoldCommand (parsed:Docopt.Arguments.Dictionary) : CliCommand =
-  let herName = 
-    match parsed.Item "<name>" with
-    | Argument s -> s
-    | _ -> "who cares"
-  Sold {Name=herName}
-  
-// switch functions to extract a subcommand and either:
-// 1) stop parsing and handle the subcommand
-// 2) continue parsing
-// TODO: This can be generalized - maybe like this?
-//let stopMaker k f parsed =
-//  let wrapped (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
-//    let rs = parsed.Item k
-//    match rs with
-//    | Flag _ -> Stop (f parsed)
-//    | None -> Continue parsed
-//    | _ -> failwith "????"
-//  wrapped parsed
-
-let helpStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
+let helpStop (parsed:Dictionary): StopOrContinue =
   let maybeHelp = parsed.Item "-h"
   match maybeHelp with
-  | Flag _ -> Stop (Help DOC)
+  | Flag _ -> Stop (HelpArgs DOC)
   | None -> Continue parsed
   | _ -> failwith "????"
 
-let versionStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
+let versionStop (parsed:Dictionary): StopOrContinue =
   let maybeVersion = parsed.Item "--version"
   match maybeVersion with
-  | Flag _ -> Stop (Version VERSION)
+  | Flag _ -> Stop (VersionArgs VERSION)
   | None -> Continue parsed
   | _ -> failwith "????"
 
-let bornStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
-  let maybeBorn = parsed.Item "born"
-  match maybeBorn with
-  | Flag _ -> Stop (makeBornCommand parsed)
-  | None -> Continue parsed
-  | _ -> failwith "????" // look for a way to avoid matching _
+let commandStop (parsed:Dictionary): StopOrContinue =
+  let found = parsed |> Seq.filter((fun (KeyValue(k, _)) -> List.contains k COMMAND_KEYS)) |> Seq.toList
+  match found.Length with
+  | 1 -> Stop(makeCommandArgs parsed)
+  | _ -> Continue parsed
   
-let diedStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
-  let maybeDied = parsed.Item "died"
-  match maybeDied with
-  | Flag _ -> Stop (makeDiedCommand parsed)
-  | None -> Continue parsed
-  | _ -> failwith "????" // look for a way to avoid matching _
+let queryStop (parsed:Dictionary): StopOrContinue =
+  Continue parsed
   
-let boughtStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
-  let maybeBought = parsed.Item "bought"
-  match maybeBought with
-  | Flag _ -> Stop (makeBoughtCommand parsed)
-  | None -> Continue parsed
-  | _ -> failwith "????" // look for a way to avoid matching _
-  
-let soldStop (parsed:Docopt.Arguments.Dictionary): StopOrContinue =
-  let maybeSold = parsed.Item "sold"
-  match maybeSold with
-  | Flag _ -> Stop (makeSoldCommand parsed)
-  | None -> Continue parsed
-  | _ -> failwith "????" // look for a way to avoid matching _
-
-// wire-up: (help | version | born | died | bought | sold ...)
+// wire-up: (help | version | command | query)
 // uses Railway oriented programing style of handling subcommands -
 // if one is matched, parsing stops and executes the subcommand
 let versionStop' = bind versionStop
-let bornStop' = bind bornStop
-let diedStop' = bind diedStop
-let boughtStop' = bind boughtStop
-let soldStop' = bind soldStop
+let commandStop' = bind commandStop
+let queryStop' = bind queryStop
 
-let convertToCliCommand (input:Docopt.Arguments.Dictionary): CliCommand =
-  let railroad = helpStop >> versionStop' >> bornStop' >> diedStop' >> boughtStop' >> soldStop'
+let convertToCliArgs (input:Dictionary): CliArgs =
+  let railroad = helpStop >> versionStop' >> commandStop' >> queryStop'
   input |> railroad |> (fun stopOrContinue ->
     match stopOrContinue with
-    | Stop cliCmd -> cliCmd
-    | Continue _ -> Invalid INVALID_COMMAND)
+    | Stop cliArgs -> cliArgs
+    | Continue _ -> InvalidArgs INVALID_COMMAND)
+ 
+let convertToDomainCommand(cmdArgs:CommandArgs): DomainCommand =
+  match cmdArgs with
+  | BornArgs args -> makeBornCommand args
+  | DiedArgs args -> makeDiedCommand args
+
+let handleDomainCommand (domainCmd:DomainCommand): DomainEvent list =
+  match domainCmd with
+  | BornCommand cmd -> [makeBornEvent cmd;]
+  | DiedCommand cmd -> [makeDiedEvent cmd;]
+
+let handleCmdArgs (cmdArgs:CommandArgs): CliResponse =
+  cmdArgs
+  |> convertToDomainCommand
+  |> handleDomainCommand
+  |> sprintf "Saved: %A"
+  |> CliResponse
+ 
+let handleCliArgs (args:CliArgs): CliResponse =
+  match args with
+  | HelpArgs _ -> CliResponse DOC
+  | VersionArgs _ -> CliResponse VERSION
+  | InvalidArgs _ -> CliResponse INVALID_COMMAND
+  | CommandArgs cmdArgs -> cmdArgs |> handleCmdArgs
+  | QueryArgs query -> CliResponse (query |> sprintf "%A")
+ 
+let printCliResponse (response:CliResponse): unit =
+  match response with
+  | CliResponse s -> s |> printfn "%s"
 
 [<EntryPoint>]
 let main argv =
   try
     Docopt(DOC).Parse(argv)
-    |> convertToCliCommand
-    |> handleCliCommand
+    |> convertToCliArgs
+    |> handleCliArgs
     |> printCliResponse
     0
-  with ArgvException(message) ->
-    printfn "Error: %s" message
+  with ArgvException _ ->
+    printfn "Error: %s" INVALID_COMMAND
     -1
