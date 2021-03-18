@@ -6,6 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Domain.fs" />
+        <Compile Include="CliCommon.fs" />
+        <Compile Include="CliIngestion.fs" />
+        <Compile Include="CliProcessing.fs" />
+        <Compile Include="CliOutputs.fs" />
         <Compile Include="Program.fs" />
         <Content Include="README.md" />
     </ItemGroup>
