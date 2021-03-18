@@ -7,12 +7,12 @@ module CliMessages =
   let NOTIMPLEMENTED = "This command has not yet been implemented"
   let INVALID_COMMAND = "Invalid Command!\n"
 
-let COMMAND_KEYS = ["born"; "died"]
-let QUERY_KEYS = ["show"]
-type ShowArgs = ShowArgs of string
+type ShowArgs = {
+  Name: string
+}
 
 type QueryArgs =
-  | ShowArgs
+  | ShowArgs of ShowArgs
   
 type BornArgs = {
   Name: string

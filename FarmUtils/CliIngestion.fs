@@ -5,74 +5,133 @@ module FarmUtils.CliIngestion
 open Docopt.Arguments
 open FarmUtils.CliCommon
 
- 
-let makeBornArgs (parsed:Dictionary): CommandArgs =
-      let herName =
-        match parsed.Item "<name>" with
-        | Argument s -> s
-        | _ -> "???"
+module CommandIngestion =
+  type StopOrContinue =
+    | Stop of CommandArgs
+    | Continue of Dictionary
     
-      let herDam=
-        match parsed.Item "--dam" with
-        | Argument s -> s
-        | _ -> "???"
-      
-      BornArgs { Name=herName; Dam=herDam }
-      
-let makeDiedArgs (parsed:Dictionary): CommandArgs =
-      let herName =
-        match parsed.Item "<name>" with
-        | Argument s -> s
-        | _ -> "???"
+  let bind continueHandler stopOrContinue =
+    match stopOrContinue with
+    | Continue parsed -> continueHandler parsed
+    | Stop value -> Stop value
     
-      DiedArgs { Name=herName }
+  let makeBornArgs (parsed:Dictionary): CommandArgs =
+          if parsed.ContainsKey("born") then
+            let herName =
+              match parsed.Item "<name>" with
+              | Argument s -> s
+              | _ -> failwith "Missing name"
+            let herDam=
+              match parsed.Item "--dam" with
+              | Argument s -> s
+              | _ -> failwith "Missing --dam"
+            BornArgs { Name=herName; Dam=herDam }
+          else
+            failwith "Noop"
+        
+  let bornStop (parsed:Dictionary): StopOrContinue =
+    try
+      Stop(makeBornArgs parsed)
+    with _ ->
+      Continue parsed
+      
+  let makeDiedArgs (parsed:Dictionary): CommandArgs =
+          if parsed.ContainsKey("died") then
+            let herName =
+              match parsed.Item "<name>" with
+              | Argument s -> s
+              | _ -> "???"
+          
+            DiedArgs { Name=herName }
+          else
+            failwith "Noop"
+
+  let diedStop (parsed:Dictionary): StopOrContinue =
+    try
+      Stop(makeDiedArgs parsed)
+    with _ ->
+      Continue parsed
+
+  let diedStop' = bind diedStop
+
+
+module QueryIngestion =
+  type StopOrContinue =
+    | Stop of QueryArgs
+    | Continue of Dictionary
+    
+  let bind continueHandler stopOrContinue =
+    match stopOrContinue with
+    | Continue parsed -> continueHandler parsed
+    | Stop value -> Stop value
+    
+  let makeShowArgs (parsed:Dictionary): QueryArgs =
+          if parsed.ContainsKey("show") then
+            let herName =
+              match parsed.Item "<name>" with
+              | Argument s -> s
+              | _ -> failwith "Missing name"
+            ShowArgs { Name=herName; }
+          else
+            failwith "Noop"
+        
+  let showStop (parsed:Dictionary): StopOrContinue =
+    try
+      Stop(makeShowArgs parsed)
+    with _ ->
+      Continue parsed
  
-let makeCommandArgs (parsed:Dictionary): CliArgs =
-   let subcommandType =
-     parsed
-     |> Seq.find((fun (KeyValue(k, _)) -> List.contains k COMMAND_KEYS))
-   match subcommandType.Key with
-   | "born" -> CommandArgs(makeBornArgs parsed)
-   | "died" -> CommandArgs(makeDiedArgs parsed)
-   | _ -> failwith "missing subcommand match"
+ module ProgramIngestion =
+  type StopOrContinue =
+    | Stop of CliArgs
+    | Continue of Dictionary
 
+  let bind continueHandler stopOrContinue =
+    match stopOrContinue with
+    | Continue parsed -> continueHandler parsed
+    | Stop value -> Stop value
 
-type StopOrContinue =
-  | Stop of CliArgs
-  | Continue of Dictionary
+  let helpStop (parsed:Dictionary): StopOrContinue =
+    match parsed.Item "-h" with
+    | Flag _ -> Stop (HelpArgs "TODO")
+    | _ -> Continue parsed
 
-let bind continueHandler stopOrContinue =
-  match stopOrContinue with
-  | Continue parsed -> continueHandler parsed
-  | Stop value -> Stop value
+  let versionStop (parsed:Dictionary): StopOrContinue =
+    match parsed.Item "--version" with
+    | Flag _ -> Stop (VersionArgs CliMessages.VERSION)
+    | _ -> Continue parsed
+  let versionStop' = bind versionStop
+    
+  let commandStop (parsed:Dictionary): StopOrContinue =
+    let commandRailroad =
+      CommandIngestion.bornStop
+      >> CommandIngestion.diedStop'
+    parsed |> commandRailroad |> (fun stopOrContinue ->
+        match stopOrContinue with
+        | CommandIngestion.Stop commandArgs -> Stop(CommandArgs commandArgs)
+        | CommandIngestion.Continue _ -> Continue parsed
+      )
+  let commandStop' = bind commandStop
+    
+  let queryStop (parsed:Dictionary): StopOrContinue =
+    let queryRailroad =
+      QueryIngestion.showStop
+    parsed |> queryRailroad |> (fun stopOrContinue ->
+        match stopOrContinue with
+        | QueryIngestion.Stop queryArgs -> Stop(QueryArgs queryArgs)
+        | QueryIngestion.Continue _ -> Continue parsed
+      )
+  let queryStop' = bind queryStop
 
-let helpStop (parsed:Dictionary): StopOrContinue =
-  match parsed.Item "-h" with
-  | Flag _ -> Stop (HelpArgs "TODO")
-  | _ -> Continue parsed
-
-let versionStop (parsed:Dictionary): StopOrContinue =
-  match parsed.Item "--version" with
-  | Flag _ -> Stop (VersionArgs CliMessages.VERSION)
-  | _ -> Continue parsed
-
-let commandStop (parsed:Dictionary): StopOrContinue =
-  let found = parsed |> Seq.filter((fun (KeyValue(k, _)) -> List.contains k COMMAND_KEYS)) |> Seq.toList
-  match found.Length with
-  | 1 -> Stop(makeCommandArgs parsed)
-  | _ -> Continue parsed
-  
-let queryStop (parsed:Dictionary): StopOrContinue =
-  Continue parsed
-  
-let versionStop' = bind versionStop
-let commandStop' = bind commandStop
-let queryStop' = bind queryStop
-
+// "Public"
 let convertToCliArgs (input:Dictionary): CliArgs =
-  let railroad = helpStop >> versionStop' >> commandStop' >> queryStop'
+  let railroad =
+    ProgramIngestion.helpStop
+    >> ProgramIngestion.versionStop'
+    >> ProgramIngestion.commandStop'
+    >> ProgramIngestion.queryStop'
   input |> railroad |> (fun stopOrContinue ->
     match stopOrContinue with
-    | Stop cliArgs -> cliArgs
-    | Continue _ -> InvalidArgs CliMessages.INVALID_COMMAND)
+    | ProgramIngestion.Stop cliArgs -> cliArgs
+    | ProgramIngestion.Continue _ -> InvalidArgs CliMessages.INVALID_COMMAND)
   

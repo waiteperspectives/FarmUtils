@@ -4,6 +4,7 @@
 module FarmUtils.CliProcessing
 
 open FarmUtils.CliCommon
+open FarmUtils.CliIngestion
 open FarmUtils.Domain
 
 
@@ -24,6 +25,10 @@ let handleCmdArgs (cmdArgs:CommandArgs): CliResponse =
   |> handleDomainCommand
   |> sprintf "Saved: %A"
   |> CliResponse
+  
+let handleQueryArgs (queryArgs:QueryArgs): CliResponse =
+  match queryArgs with
+  | ShowArgs args -> CliResponse (sprintf "Showing info for %s" args.Name)
 
 let handleCliArgs (env:Map<string,string>) (args:CliArgs): CliResponse =
   match args with
@@ -31,5 +36,5 @@ let handleCliArgs (env:Map<string,string>) (args:CliArgs): CliResponse =
   | VersionArgs _ -> CliResponse CliMessages.VERSION
   | InvalidArgs _ -> CliResponse CliMessages.INVALID_COMMAND
   | CommandArgs cmdArgs -> cmdArgs |> handleCmdArgs
-  | QueryArgs query -> CliResponse (query |> sprintf "%A")
+  | QueryArgs queryArgs -> queryArgs |> handleQueryArgs
  
