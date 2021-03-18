@@ -91,9 +91,9 @@ module QueryIngestion =
     | Continue parsed -> continueHandler parsed
     | Stop value -> Stop value
 
-  let helpStop (parsed:Dictionary): StopOrContinue =
+  let helpStop (usage:string) (parsed:Dictionary): StopOrContinue =
     match parsed.Item "-h" with
-    | Flag _ -> Stop (HelpArgs "TODO")
+    | Flag _ -> Stop (HelpArgs usage)
     | _ -> Continue parsed
 
   let versionStop (parsed:Dictionary): StopOrContinue =
@@ -124,9 +124,10 @@ module QueryIngestion =
   let queryStop' = bind queryStop
 
 // "Public"
-let convertToCliArgs (input:Dictionary): CliArgs =
+let convertToCliArgs (env:Map<string,string>) (input:Dictionary): CliArgs =
+  let helpStop' = ProgramIngestion.helpStop env.["usage"]
   let railroad =
-    ProgramIngestion.helpStop
+    helpStop'
     >> ProgramIngestion.versionStop'
     >> ProgramIngestion.commandStop'
     >> ProgramIngestion.queryStop'

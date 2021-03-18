@@ -28,7 +28,7 @@ let env = Map.empty.Add("usage", DOC)
 let main argv =
   try
     Docopt(DOC).Parse(argv)
-    |> convertToCliArgs
+    |> convertToCliArgs env
     |> handleCliArgs env
     |> printCliResponse
     0
