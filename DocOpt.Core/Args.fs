@@ -48,6 +48,7 @@ type Dictionary() =
     member xx.Item
       with get key' = (xx :> IDictionary<_, _>).Item key'
        and set key' val' = (xx :> IDictionary<_, _>).Item key' <- val'
+    member xx.ContainsKey = (xx :> IDictionary<_,_>).ContainsKey
     member xx.Clear = (xx :> IDictionary<_, _>).Clear
     member xx.AddString(key':string, ?arg':string) =
       let newval =
