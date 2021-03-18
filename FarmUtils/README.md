@@ -1,9 +1,8 @@
-Command Line Interface
+FarmUtils
+===========
 
-Usage:
-
-```bash
-dotnet run -- born cow1 --dam cow2
-dotnet run -- --help
-dotnet run -- --version
-```
+This is a command line recordkeeping system for dairy farms.
+The primary purpose is to record events that happen to cows
+and then report on those events later. The primary output
+of the program will be csv sent to stdout for further
+processing using csvkit.
