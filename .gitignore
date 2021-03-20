@@ -445,3 +445,4 @@ $RECYCLE.BIN/
 *.swp
 .paket/
 paket-files/
+venv/*
