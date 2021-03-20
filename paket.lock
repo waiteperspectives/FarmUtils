@@ -1,0 +1,18 @@
+STORAGE: NONE
+RESTRICTION: || (== netcoreapp3.1) (== netstandard2.0) (== netstandard2.1)
+NUGET
+  remote: https://api.nuget.org/v3/index.json
+    FSharp.Core (5.0.1) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))
+    Microsoft.CSharp (4.7) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))
+    Npgsql (5.0.3) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))
+      System.Runtime.CompilerServices.Unsafe (>= 4.6)
+    SqlStreamStore (1.2) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))
+      Microsoft.CSharp (>= 4.7)
+    SqlStreamStore.FSharp (0.0.1-alpha.20)
+      FSharp.Core (>= 4.7.2) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))
+      SqlStreamStore (>= 1.2.0-beta.8) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))
+      SqlStreamStore.Postgres (>= 1.2.0-beta.8) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))
+    SqlStreamStore.Postgres (1.2.0-beta.8) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))
+      Npgsql (>= 4.1.2)
+      SqlStreamStore (>= 1.2.0-beta.8)
+    System.Runtime.CompilerServices.Unsafe (5.0) - restriction: || (== netcoreapp3.1) (&& (== netstandard2.0) (>= netcoreapp3.1)) (&& (== netstandard2.1) (>= netcoreapp3.1))

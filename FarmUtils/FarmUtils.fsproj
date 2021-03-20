@@ -1,22 +1,24 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <Compile Include="Domain.fs" />
-        <Compile Include="CliCommon.fs" />
-        <Compile Include="CliIngestion.fs" />
-        <Compile Include="CliProcessing.fs" />
-        <Compile Include="CliOutputs.fs" />
-        <Compile Include="Program.fs" />
-        <Content Include="README.md" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\DocOpt.Core\DocOpt.Core.fsproj" />
-    </ItemGroup>
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Domain.fs" />
+    <Compile Include="Store.fs" />
+    <Compile Include="CliCommon.fs" />
+    <Compile Include="CliIngestion.fs" />
+    <Compile Include="CliProcessing.fs" />
+    <Compile Include="CliOutputs.fs" />
+    <Compile Include="Program.fs" />
+    <Content Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DocOpt.Core\DocOpt.Core.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SqlStreamStore.FSharp" Version="0.0.1-alpha.20" />
+  </ItemGroup>
+  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>
