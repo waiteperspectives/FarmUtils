@@ -1,5 +1,10 @@
 module FarmUtils.CliCommon
 
+type Environment = {
+  Usage: string
+  Store: SqlStreamStore.InMemoryStreamStore
+}
+
 
 [<RequireQualifiedAccess>]
 module CliMessages = 

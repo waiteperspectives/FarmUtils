@@ -4,5 +4,6 @@ Because farmers love the command line.
 
 ## TODO
 
+- [ ] implement Store infrastructure (read, write)
 - [ ] figure out configuration, (yaml, json) --> depends on builtins
-- [ ] figure out persistence technique (sqlite, csv, json, [litedb](https://github.com/Zaid-Ajaj/LiteDB.FSharp))
+- [ ] write a docker-compose to serve postgres

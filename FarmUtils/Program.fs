@@ -22,7 +22,8 @@ Options:
   --version     Show version.
 """
 
-let env = Map.empty.Add("usage", DOC)
+let store = new SqlStreamStore.InMemoryStreamStore()
+let env = {Usage=DOC;Store=store;}
 
 [<EntryPoint>]
 let main argv =

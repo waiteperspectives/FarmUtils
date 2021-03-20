@@ -124,8 +124,8 @@ module QueryIngestion =
   let queryStop' = bind queryStop
 
 // "Public"
-let convertToCliArgs (env:Map<string,string>) (input:Dictionary): CliArgs =
-  let helpStop' = ProgramIngestion.helpStop env.["usage"]
+let convertToCliArgs (env:Environment) (input:Dictionary): CliArgs =
+  let helpStop' = ProgramIngestion.helpStop env.Usage
   let railroad =
     helpStop'
     >> ProgramIngestion.versionStop'
