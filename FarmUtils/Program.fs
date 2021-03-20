@@ -6,7 +6,7 @@ open FarmUtils.Outputs
 
 
 let DOC = """
-Herd Inventory
+FarmUtils
 =============================================================
 
 Usage:

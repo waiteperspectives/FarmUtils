@@ -8,7 +8,7 @@ type Environment = {
 
 [<RequireQualifiedAccess>]
 module CliMessages = 
-  let VERSION = "\nHerd Inventory - Version 1.0.0\n\n"
+  let VERSION = "\nFarmUtils - Version 1.0.0\n\n"
   let NOTIMPLEMENTED = "This command has not yet been implemented"
   let INVALID_COMMAND = "Invalid Command!\n"
 
