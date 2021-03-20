@@ -3,9 +3,10 @@
 // Commands or Queries are converted to the domain types and processed
 module FarmUtils.CliProcessing
 
+open SqlStreamStore
 open FarmUtils.CliCommon
 open FarmUtils.Domain
-open SqlStreamStore
+open FarmUtils.DomainService
 
 
 let makeBornCommand(args:BornArgs): DomainCommand =
@@ -18,21 +19,6 @@ let convertToDomainCommand(cmdArgs:CommandArgs): DomainCommand =
   match cmdArgs with
   | BornArgs args -> makeBornCommand args
   | DiedArgs args -> makeDiedCommand args
-
-let handleDomainCommand
-  (store:InMemoryStreamStore)
-  (domainCmd:DomainCommand): string =
-    // first query the event store stream for the proper events
-    // TODO: implement query
-    let originalEvents = List.empty<DomainEvent>
-    // second: decide - hydrate the appropriate state known by the domain,
-    // then execute the new command, giving back events or an error
-    let decision = decide originalEvents domainCmd
-    // third: based on the result of the decision, save new events to the stream
-    // TODO: implement save
-    match decision with
-    | Ok events -> events |> sprintf "Saving: %A"
-    | Error err -> err |> sprintf "Error: %A"
  
 let handleCmdArgs (store:InMemoryStreamStore) (cmdArgs:CommandArgs): CliResponse =
   cmdArgs
