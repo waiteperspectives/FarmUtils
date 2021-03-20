@@ -66,7 +66,8 @@ module QueryIngestion =
     | Stop value -> Stop value
     
   let makeShowArgs (parsed:Dictionary): QueryArgs =
-          if parsed.ContainsKey("show") then
+          // TODO: refactor using cow instead of show to allow showing other things
+          if parsed.ContainsKey("cow") then
             let herName =
               match parsed.Item "<name>" with
               | Argument s -> s
