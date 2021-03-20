@@ -6,4 +6,4 @@ Because farmers love the command line.
 
 - [ ] implement Store infrastructure (read, write)
 - [ ] figure out configuration, (yaml, json) --> depends on builtins
-- [ ] write a docker-compose to serve postgres
+- [ ] write a docker-compose to serve postgres, or port sqlite
